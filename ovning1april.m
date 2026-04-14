@@ -11,4 +11,6 @@ imadjdemo
 
 %%
 
-
+hej 
+commitDetails = commit(repo,Message=commitMessage)
+commitDetails = commit(repo,Message=commitMessage,Files=listOfFiles)
