@@ -22,3 +22,7 @@ imshow(img_distort);
 %% Add noise (Skipped for now)
 
 %% Psuedoinverse filter
+img_fouriertransformed = fft2(img_distort);
+PSF_fourier = psf2otf(PSF_true, [M,N]) %gör om psf till fouriervärden
+img_restored = ifft2(img_fouriertransformed ./PSF_fourier)
+imshow(img_restored);
