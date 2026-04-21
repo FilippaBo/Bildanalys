@@ -50,13 +50,24 @@ subplot(2,3,6);
 imshow(log(abs(fftshift(img_blurred_ft))),[]); %blurrad bild i ft, G
 
 
-%% Add noise (Skipped for now)
-
+%% Add noise 
+img_blurred_noise = imnoise(img_blurred, "gaussian");
+subplot(1,2,1);
+imshow(img_blurred_noise);
+ 
+img_blurred_noise_ft = fftshift(fft2(img_blurred_noise));
+subplot(1,2,2);
+imshow(img_blurred_noise_ft);
 
 %% Psuedoinverse filter
-%ändrat till att räkna med fouriertransformerade blurrade bilden
 
+%no noise
 img_restored = ifft2(img_blurred_ft ./PSF_fourier);
+subplot(1,2,1);
 imshow(img_restored);
 
-%%
+%ändrat till att räkna med fouriertransformerade blurrade bilden
+%with noise
+img_restored_noise = ifftshift(ifft2(fftshift(img_blurred_noise_ft ./PSF_fourier)));
+subplot(1,2,2);
+imshow(img_restored_noise);
