@@ -6,6 +6,10 @@ img_0to1 = im2double(img_pixels);
 
 [M, N] = size(img_0to1);
 
+%%
+%kollar maxvärdet på högsta pixeln
+max(max(img_0to1))
+
 %% 
 PSF_length = 60;
 PSF_angle = 0;
