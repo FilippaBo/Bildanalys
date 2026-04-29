@@ -108,3 +108,17 @@ imshow(img_restored);
 img_restored_noise = ifft2(img_blurred_noise_ft .* PSF_zero); %
 subplot(1,2,2);
 imshow(img_restored_noise);
+
+
+%% simpla sättet att köra Wiener, nästa steg är att ersätta K med S och ta avrage mellan övriga delar av bilden (se star treak exemplet från slides
+%obs ej klar
+K = 0.001;
+
+G = fft2(img_blurred_noise);  
+H = PSF_fourier;
+
+F_hat = (conj(H) ./ (abs(H).^2 + K)) .* G; %se slide 57 för formel
+
+img_wiener = ifft2(F_hat);
+
+imshow(img_wiener, []);
