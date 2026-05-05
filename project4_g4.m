@@ -99,15 +99,20 @@ imshow(img_restored_noise);
 
 %%
 %fem kopior av rotade originalbilder
+distorted1 = fft2(imrotate(img_0to1, 10, "crop"));
+distorted2 = fft2(imrotate(img_0to1, 355, "crop"));
+distorted3 = fft2(imrotate(img_0to1, 5, "crop"));
+distorted4 = fft2(imrotate(img_0to1, 350, "crop"));
+distorted_av = (distorted1 + distorted2 + distorted3 + distorted4)./4;
 
 
 %%
-s_nn= img_blurred_noise_ft
-s_ff = 
+s_nn = img_blurred_noise_ft;
+s_ff = abs(distorted_av).^2;
 
 %% simpla sättet att köra Wiener, nästa steg är att ersätta K med S och ta avrage mellan övriga delar av bilden (se star treak exemplet från slides
 %obs ej klar
-K = s_nn ./s_ff
+K = s_nn ./s_ff;
 %K = 0.001;
 
 G = fft2(img_blurred_noise);  
