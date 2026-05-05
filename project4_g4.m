@@ -1,3 +1,8 @@
+clear all
+close all
+
+%%
+
 img_raw = 'Xray.png';
 
 %% Gör om bild till 0-1 värden
@@ -69,35 +74,17 @@ imshow(img_blurred_noise_ft);
 %subplot(1,2,2);
 %imshow(log(1+abs(fftshift(img_blurred_noise_ft))), []);
 
-%% Psuedoinverse filter gammalt försök (Kan tas bort)
-
-%no noise
-%img_restored = ifft2(img_blurred_ft ./PSF_fourier);
-%subplot(1,2,1);
-%imshow(img_restored, []);
-
-%ändrat till att räkna med fouriertransformerade blurrade bilden
-%with noise
-%img_restored_noise = ifftshift(ifft2(fftshift(img_blurred_noise_ft ./PSF_fourier)));
-%subplot(1,2,2);
-%imshow(img_restored_noise, []);
-
-%chattens förslag
-%img_restored_noise =ifft2(img_blurred_noise_ft ./PSF_fourier);
-%subplot(1,2,2);
-%imshow(real(img_restored_noise), []);
-
 %% Pseudoinverse nytt försök
 
-
-epsilon = 0.09; %Låga värden ger mycket noise, höga värden dålig detalj
+epsilon = 0.1; %Låga värden ger mycket noise, höga värden dålig detalj
 
 PSF_zero = zeros(size(PSF_fourier)); %Gör en lika stor matris med bara 0:or
-Cutoff_matrix = abs(PSF_fourier) >= epsilon; %Bildar en boolean matris, True där värden är större än epsilon, alltså okej att ta inverse på
-
+Cutoff_matrix = abs(PSF_fourier) <= epsilon; %Bildar en boolean matris, True där värden är större än epsilon, alltså okej att ta inverse på
+imshow((Cutoff_matrix),[])
 %imshow (Cutoff_matrix)
 
 PSF_zero(Cutoff_matrix) = 1 ./PSF_fourier(Cutoff_matrix); % När Cutoff är true ersätts nollor med inversen av H (PSF_fourier)
+imshow(log(abs(PSF_zero)),[])
 
 img_restored = ifft2(img_blurred_ft .*PSF_zero); % Utan noise
 subplot(1,2,1);
@@ -105,14 +92,23 @@ imshow(img_restored);
 
 %img_blurred_noise_ft är noiset i fourier, som multipliceras med
 %Nollmatrisen (där nollorna ersätts på alla ställen "som spelar roll")
-img_restored_noise = ifft2(img_blurred_noise_ft .* PSF_zero); %
+img_restored_noise = ifft2(img_blurred_noise_ft .* PSF_zero); %med noise
 subplot(1,2,2);
 imshow(img_restored_noise);
 
 
+%%
+%fem kopior av rotade originalbilder
+
+
+%%
+s_nn= img_blurred_noise_ft
+s_ff = 
+
 %% simpla sättet att köra Wiener, nästa steg är att ersätta K med S och ta avrage mellan övriga delar av bilden (se star treak exemplet från slides
 %obs ej klar
-K = 0.001;
+K = s_nn ./s_ff
+%K = 0.001;
 
 G = fft2(img_blurred_noise);  
 H = PSF_fourier;
