@@ -111,10 +111,7 @@ distorted_av = (distorted1 + distorted2 + distorted3 + distorted4+ distorted5)./
 s_nn = img_blurred_noise_ft;
 s_ff = abs(distorted_av).^2;
 
-%% simpla sättet att köra Wiener, nästa steg är att ersätta K med S och ta avrage mellan övriga delar av bilden (se star treak exemplet från slides
-%obs ej klar
-%K = s_nn ./s_ff;
-K = 0.01;
+K = s_nn ./s_ff;
 
 G = fft2(img_blurred_noise);  
 H = PSF_fourier;
