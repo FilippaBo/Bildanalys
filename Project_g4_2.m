@@ -67,7 +67,7 @@ subplot(1,2,2);
 imshow(img_blurred_noise_ft);
 title('Blurred image with noise in fourier domain', 'FontSize', 24)
 
-%% Pseudoinverse filter
+%% Pseudoinverse filter, with inverse example 
 
 
 epsilon = 0.1; % Example value for epsilon
@@ -84,22 +84,34 @@ PSF_epsilon(Boolean_matrix) = 1 ./PSF_fourier(Boolean_matrix);
 % This does two things: First (G * (1/H)) is calculated, secondly, the
 % inverse fourier transform is applied to go back into the picture domain
 img_restored = ifft2(img_blurred_ft .*PSF_epsilon); 
-subplot(1,2,1);
+subplot(1,3,1);
 imshow(img_restored, []);
-title('Restored image no noise', 'FontSize', 24)
+title('No noise', 'FontSize', 24)
 
 %This does the same thing the comment above describes, but this time G also
 %contains noise
 img_restored_noise = ifft2(img_blurred_noise_ft .* PSF_epsilon);
-subplot(1,2,2);
+subplot(1,3,2);
 imshow(img_restored_noise, []);
-title('Restored image with noise', 'FontSize', 24)
+title('Pseudoinverse with noise', 'FontSize', 24)
 
-%% simpla sättet att köra Wiener, nästa steg är att ersätta K med S och ta avrage mellan övriga delar av bilden (se star treak exemplet från slides
-%obs ej klar
+%This is only meant to display what is would look like with an inverse
+%filter instead of a pseudo inverse filter, therefore epsilon will be set
+%to 0.0001, just to avoid NaNinf values in the program. Everything else is
+%the same as the code above
+example_epsilon = 0.0001
+PSF_example = zeros(size(PSF_fourier));
+Example_matrix = abs(PSF_fourier) >= example_epsilon;
+PSF_example(Example_matrix) = 1 ./PSF_fourier(Example_matrix);
+img_restored_inverse_noise = ifft2(img_blurred_noise_ft .* PSF_example);
+subplot(1,3,3);
+imshow(img_restored_inverse_noise, []);
+title('Inverse with noise', 'FontSize', 24)
 
+%% Wiener filter
 
-
+% 10 different distortions done by rotating and flipping in a non-symmetric
+% way
 Distorted1 = fft2(imrotate(img_0to1, 56, "crop"));
 Distorted2 = fft2(imrotate(img_0to1, 120, "crop"));
 Distorted3 = fft2(imrotate(img_0to1, 175, "crop"));
@@ -111,67 +123,73 @@ Distorted8 = fft2(flip(imrotate(img_0to1, 138, "crop")));
 Distorted9 = fft2(flip(imrotate(img_0to1, 235, "crop")));
 Distorted10 = fft2(imrotate(img_0to1, 343, "crop"));
 
-
-Distorted15 = fft2(flip(img_0to1,1));
-Distorted16 = fft2(flip(img_0to1,2));
-Distorted17 = fft2(flip(imrotate(img_0to1, 90, "crop")));
-Distorted18 = fft2(flip(imrotate(img_0to1, 270, "crop")));
-Distorted19 = fft2(flip(imrotate(img_0to1, 90, "crop")));
-Distorted20 = fft2(flip(imrotate(img_0to1, 270, "crop")));
-
-
-%    Distorted1 = fft2(imrotate(img_0to1, v, "crop"));
-%end
+% Takes the average of the 10 altered images above and makes a non-symetric
+% distorted average
 Distorted_ave = (Distorted1 + Distorted2 + Distorted3 + Distorted4 + Distorted5 + Distorted6 + Distorted7 + Distorted8 + Distorted9 + Distorted10)./10;
-Distorted_ave2= zeros(size(img_0to1));
+
+%This is a foor loop that returns Distort_loop: This is a picture, that is
+%made up by 10 evenly rotated images over 360 degrees stacked on top of
+%each other.
+Distorted_loop= zeros(size(img_0to1));
 for a = 36:36:360
-    Distorted_ave2 = Distorted_ave2 + fft2(imrotate(img_0to1, a, "crop"));
+    Distorted_loop = Distorted_loop + fft2(imrotate(img_0to1, a, "crop"));
 end
 
-Distorted_ave_tot = (Distorted_ave2 + Distorted15 + Distorted16 + Distorted17 + Distorted18 + Distorted19 + Distorted20) ./16;
+% Here we have 6 more distorted images to make sure we have some fliped
+% images added onto the foor loop. The _2 in the name is to make sure we
+% don't confuse it with Distorted1 from earlier
+Distorted1_2 = fft2(flip(img_0to1,1));
+Distorted2_2= fft2(flip(img_0to1,2));
+Distorted3_2 = fft2(flip(imrotate(img_0to1, 90, "crop")));
+Distorted4_2 = fft2(flip(imrotate(img_0to1, 270, "crop")));
+Distorted5_2 = fft2(flip(imrotate(img_0to1, 90, "crop")));
+Distorted6_2 = fft2(flip(imrotate(img_0to1, 270, "crop")));
 
+% The second distorted average we've made, that is symetric, 
+% (referd to as periodic in the report),
+% due to the for loop. We have 16 total pictures, since the loop contains 10
+Distorted_ave_sym = (Distorted_loop + Distorted1_2 + Distorted2_2 + Distorted3_2 + Distorted4_2 + Distorted5_2 + Distorted6_2) ./16;
+
+% This extracts the noise from the blurred picture
 Pure_Noise = img_blurred_noise - img_blurred;
-%imshow(Pure_Noise, []);
 
+% Fourier transform on the Nosise
 Pure_Noise_ft = fft2(Pure_Noise);
 
+% S_nn is noise squared
 S_nn = abs(Pure_Noise_ft).^2;
-%S_nn = img_blurred_noise_ft; First try. Very wrong. S_nn är inte kvadrerad och är inte bara noise :)   
-S_ff = abs(Distorted_ave).^2;
-S_ff2 = abs(Distorted_ave_tot).^2;
-K = S_nn ./S_ff;
-K2 = S_nn ./S_ff2;
-K3 = 0.01
 
-G = fft2(img_blurred_noise);  
+% S_ff for the two different versions 
+S_ff = abs(Distorted_ave).^2;
+S_ff_sym = abs(Distorted_ave_sym).^2;
+
+% Here we calculate the K value for the different versions, third one is a
+% Set value for comparison
+K = S_nn ./S_ff;
+K_sym = S_nn ./S_ff_sym;
+K_set_value = 0.01
+
+% This just renames our variables for clarity
+G = img_blurred_noise_ft;  
 H = PSF_fourier;
 
-F_hat = (conj(H) ./ (abs(H).^2 + K)) .* G; %se slide 57 för formel
-F_hat2 = (conj(H) ./ (abs(H).^2 + K2)) .* G;
-F_hat3 = (conj(H) ./ (abs(H).^2 + K3)) .* G;
+% Calculations
+F_hat = (conj(H) ./ (abs(H).^2 + K)) .* G; 
+F_hat_sym = (conj(H) ./ (abs(H).^2 + K_sym)) .* G;
+F_hat_set_value = (conj(H) ./ (abs(H).^2 + K_set_value)) .* G;
 
+% This creates the images
 img_wiener = ifft2(F_hat);
-img_wiener2 = ifft2(F_hat2);
-img_wiener3 = ifft2(F_hat3);
+img_wiener_sym = ifft2(F_hat_sym);
+img_wiener_set_value = ifft2(F_hat_set_value);
 
+% Display the images
 subplot(1,3,1)
 imshow(img_wiener, []);
 title('Non-periodic', 'FontSize', 24)
 subplot(1,3,2)
-imshow(img_wiener2, []);
+imshow(img_wiener_sym, []);
 title('Semi-periodic', 'FontSize', 24)
 subplot(1,3,3)
-imshow(img_wiener3, []);
+imshow(img_wiener_set_value, []);
 title('K = 0.01', 'FontSize', 24)
-
-%%
-
-Test = ifft2(Distorted_ave);
-Test2 = ifft2(Distorted_ave_tot);
-
-subplot(1,2,1)
-imshow(Test, []);
-title('Non-periodic S-ff', 'FontSize', 24)
-subplot(1,2,2)
-imshow(Test2, []);
-title('Periodic S-ff', 'FontSize', 24)
