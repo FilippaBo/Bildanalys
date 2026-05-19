@@ -191,5 +191,9 @@ subplot(1,3,2)
 imshow(img_wiener_sym, []);
 title('Semi-periodic', 'FontSize', 24)
 subplot(1,3,3)
+
+%% This prints our S_nn
+imshow(Pure_Noise, []);
+title('S_nn', 'FontSize', 24)
 imshow(img_wiener_set_value, []);
 title('K = 0.01', 'FontSize', 24)
