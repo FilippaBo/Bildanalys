@@ -192,8 +192,14 @@ imshow(img_wiener_sym, []);
 title('Semi-periodic', 'FontSize', 24)
 subplot(1,3,3)
 
-%% This prints our S_nn
+%% This prints our calculated noise
+
 imshow(Pure_Noise, []);
-title('S_nn', 'FontSize', 24)
-imshow(img_wiener_set_value, []);
-title('K = 0.01', 'FontSize', 24)
+
+% The following two lines were written by AI, when printing a single image
+% the title bacame cropped and I didn't feel like troubleshooting MatLab
+% formating.
+ax = gca;
+ax.Position = [0.05 0.05 0.9 0.85];   
+
+title('Calculated noise', 'FontSize', 24)
